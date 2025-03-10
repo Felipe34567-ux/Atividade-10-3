@@ -50,4 +50,4 @@ public class Ihm {
         String novoNome = entrada.nextLine();
         gerenciador.adicionarNome(novoNome);
     }
-}
+ }
