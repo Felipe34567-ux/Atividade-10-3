@@ -1,16 +1,18 @@
+// Felipe Ferreira Melantonio RA: 10443843 , Guilherme Sampaio Silva RA:10443768
 package com.seuprojeto;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GerenciadorNomesBD implements GerenciadorNomes {
-    private static final String URL = "jdbc:postgresql://<sua-url-supabase>:5432/postgres";
-    private static final String USUARIO = "<seu-usuario>";
-    private static final String SENHA = "<sua-senha>";
+    private final String url = "jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:5432/postgres?user=postgres.pjtvsqcoqrejvozpebzj&password=fgvdrstuvjwxyzdhg";
 
     public GerenciadorNomesBD() {
-        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
+        criarTabelaSeNaoExistir();
+    }
+
+    private void criarTabelaSeNaoExistir() {
+        try (Connection conn = DriverManager.getConnection(url);
              Statement stmt = conn.createStatement()) {
             String sql = "CREATE TABLE IF NOT EXISTS nomes (id SERIAL PRIMARY KEY, nome VARCHAR(20) NOT NULL)";
             stmt.executeUpdate(sql);
@@ -22,9 +24,12 @@ public class GerenciadorNomesBD implements GerenciadorNomes {
     @Override
     public List<String> obterNomes() {
         List<String> nomes = new ArrayList<>();
-        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
+        String sql = "SELECT nome FROM nomes";
+
+        try (Connection conn = DriverManager.getConnection(url);
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT nome FROM nomes")) {
+             ResultSet rs = stmt.executeQuery(sql)) {
+
             while (rs.next()) {
                 nomes.add(rs.getString("nome"));
             }
@@ -37,15 +42,19 @@ public class GerenciadorNomesBD implements GerenciadorNomes {
     @Override
     public void adicionarNome(String nome) {
         if (nome.length() > MAX_CARACTERES_NOMES) {
-            System.out.println("Nome excede o limite de caracteres.");
+            System.out.println("Erro: Nome excede o limite de caracteres!");
             return;
         }
-        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
-             PreparedStatement stmt = conn.prepareStatement("INSERT INTO nomes (nome) VALUES (?)")) {
-            stmt.setString(1, nome);
-            stmt.executeUpdate();
+
+        String sql = "INSERT INTO nomes (nome) VALUES (?)";
+
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, nome);
+            pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 }
+
